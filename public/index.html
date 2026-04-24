@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NVIDIA ISV Watchtower</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">NVIDIA Enterprise ISV Dashboard</p>
+          <h1>NVIDIA ISV Watchtower</h1>
+          <p class="hero-text">
+            Track stock moves, company narrative, and strategic openings across the ISV landscape in a
+            single dashboard tuned for product management and GTM teams.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <div class="hero-button-row">
+            <button id="refreshButton" class="primary-button">Refresh now</button>
+            <button id="exportButton" class="secondary-button" type="button">Export HTML</button>
+          </div>
+          <p class="hero-footnote" id="generatedAt">Loading live market context...</p>
+          <p class="hero-contact">For questions and updates, reach out to Prerana Gambhir.</p>
+        </div>
+      </header>
+
+      <section class="control-panel">
+        <div class="control-header">
+          <div>
+            <p class="section-label">Watchlist</p>
+            <h2>Build your company set</h2>
+          </div>
+          <div class="pill-group">
+            <button class="mode-pill active" data-mode="ticker" type="button">Ticker</button>
+            <button class="mode-pill" data-mode="company" type="button">Company name</button>
+          </div>
+        </div>
+        <form id="watchlistForm" class="watchlist-form">
+          <label class="input-label" for="watchInput">Ticker or company</label>
+          <div class="input-row">
+            <input
+              id="watchInput"
+              name="watchInput"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Try TEAM, NOW, PLTR, or Databricks"
+            />
+            <button class="primary-button" type="submit">Add to dashboard</button>
+          </div>
+          <p class="helper-text">
+            Ticker mode shows stock price plus company news. Company mode is useful for private companies
+            like Databricks and focuses on strategic news only.
+          </p>
+        </form>
+        <div id="watchlistChips" class="chip-row" aria-live="polite"></div>
+      </section>
+
+      <section class="portfolio-summary">
+        <div class="summary-card">
+          <p class="summary-label">Coverage</p>
+          <h3 id="totalCompanies">0 companies</h3>
+          <p id="coverageDetail">Loading...</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Common Themes</p>
+          <h3 id="commonThemes">Waiting for data</h3>
+          <p>Most repeated strategy signals across the watchlist.</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Biggest Move</p>
+          <h3 id="momentumLeader">Waiting for data</h3>
+          <p id="momentumDetail">The largest same-day move in the loaded set.</p>
+        </div>
+      </section>
+
+      <section class="dashboard-panel">
+        <div class="dashboard-header">
+          <div>
+            <p class="section-label">Company cards</p>
+            <h2>Live market and narrative signals</h2>
+          </div>
+          <p class="dashboard-meta">
+            News includes summaries, sources, and "why should I care" framing for NVIDIA-oriented PM and
+            GTM workflows.
+          </p>
+        </div>
+        <div id="statusBanner" class="status-banner">Loading dashboard...</div>
+        <div id="dashboardGrid" class="dashboard-grid"></div>
+      </section>
+    </div>
+
+    <template id="chipTemplate">
+      <div class="watch-chip">
+        <div>
+          <p class="chip-title"></p>
+          <p class="chip-subtitle"></p>
+        </div>
+        <button type="button" class="remove-chip" aria-label="Remove company">Remove</button>
+      </div>
+    </template>
+
+    <template id="cardTemplate">
+      <article class="company-card">
+        <div class="company-header">
+          <div class="company-header-copy">
+            <div class="card-topline">
+              <p class="card-tag"></p>
+              <div class="card-actions">
+                <span class="drag-hint"></span>
+                <button type="button" class="card-toggle" aria-expanded="true">Collapse</button>
+              </div>
+            </div>
+            <h3 class="company-name"></h3>
+          </div>
+          <div class="price-block">
+            <p class="price-value"></p>
+            <p class="price-change"></p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="metric-grid"></div>
+
+          <div class="range-panel hidden">
+            <div class="range-head">
+              <span class="range-low"></span>
+              <span class="range-high"></span>
+            </div>
+            <div class="range-track">
+              <span class="range-indicator"></span>
+            </div>
+            <p class="range-label">52-week position</p>
+          </div>
+
+          <div class="card-section-nav"></div>
+
+          <div class="section-block hidden highlights-section" data-section="overview">
+            <div class="section-heading">
+              <p class="section-label">Highlights</p>
+              <h4>What matters right now</h4>
+            </div>
+            <ul class="note-list highlights-list"></ul>
+          </div>
+
+          <div class="section-block hidden outlook-section" data-section="outlook">
+            <div class="section-heading">
+              <p class="section-label">Outlook</p>
+              <h4>Short-term read</h4>
+            </div>
+            <div class="outlook-card">
+              <p class="outlook-label"></p>
+              <p class="outlook-summary"></p>
+            </div>
+          </div>
+
+          <div class="section-block strategy-section" data-section="strategy">
+            <div class="section-heading">
+              <p class="section-label">Strategy</p>
+              <h4>Where NVIDIA should lean in</h4>
+            </div>
+            <ul class="note-list strategy-list"></ul>
+          </div>
+
+          <div class="section-block hidden watchout-section" data-section="overview">
+            <div class="section-heading">
+              <p class="section-label">Watchouts</p>
+              <h4>Things to pressure-test</h4>
+            </div>
+            <ul class="note-list watchout-list"></ul>
+          </div>
+
+          <div class="section-block hidden edgar-section" data-section="edgar">
+            <div class="section-heading">
+              <p class="section-label">SEC EDGAR</p>
+              <h4>Filings and guidance</h4>
+            </div>
+            <ul class="note-list edgar-list"></ul>
+            <ul class="note-list guidance-list"></ul>
+          </div>
+
+          <div class="section-block hidden analyst-section" data-section="analysts">
+            <div class="section-heading">
+              <p class="section-label">Analyst reactions</p>
+              <h4>Street read-through</h4>
+            </div>
+            <div class="reaction-list"></div>
+          </div>
+
+          <div class="section-block hidden theme-section" data-section="themes">
+            <div class="section-heading">
+              <p class="section-label">Themes</p>
+              <h4>Signals behind the recommendation</h4>
+            </div>
+            <div class="theme-row"></div>
+          </div>
+
+          <div class="section-block news-section" data-section="news">
+            <div class="section-heading">
+              <p class="section-label">News</p>
+              <h4>Last 7 days</h4>
+            </div>
+            <div class="news-list"></div>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <template id="newsTemplate">
+      <article class="news-item">
+        <div class="news-topline">
+          <div>
+            <p class="news-source"></p>
+            <a class="news-link" target="_blank" rel="noreferrer"></a>
+          </div>
+          <p class="news-date"></p>
+        </div>
+        <p class="news-summary"></p>
+        <div class="callout-box">
+          <span>Why should I care?</span>
+          <p class="news-why-care"></p>
+        </div>
+        <div class="topic-row"></div>
+      </article>
+    </template>
+
+    <template id="reactionTemplate">
+      <article class="reaction-item">
+        <div class="reaction-topline">
+          <p class="reaction-source"></p>
+          <p class="reaction-date"></p>
+        </div>
+        <a class="reaction-link" target="_blank" rel="noreferrer"></a>
+        <p class="reaction-summary"></p>
+      </article>
+    </template>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

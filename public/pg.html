@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PG Cents and Sensibility Watchtower</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/pg.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Personal Trading Dashboard</p>
+          <h1>PG Cents and Sensibility Watchtower</h1>
+          <p class="hero-text">
+            Track conviction, catalysts, analyst tone, and risk in a watchlist that is tuned for
+            personal investing decisions instead of enterprise strategy work.
+          </p>
+          <a class="nav-link" href="/">Open NVIDIA ISV Watchtower</a>
+        </div>
+        <div class="hero-actions">
+          <div class="hero-button-row">
+            <button id="refreshButton" class="primary-button" type="button">Refresh now</button>
+            <button id="expandAllButton" class="secondary-button" type="button">Expand all</button>
+            <button id="collapseAllButton" class="secondary-button" type="button">Collapse all</button>
+            <button id="exportButton" class="secondary-button" type="button">Export HTML</button>
+          </div>
+          <p class="hero-footnote" id="generatedAt">Loading market context...</p>
+          <p class="hero-note">
+            This is a decision-support dashboard, not financial advice. Use it to tighten the
+            thesis and the risk discussion.
+          </p>
+        </div>
+      </header>
+
+      <section class="control-panel">
+        <div class="control-header">
+          <div>
+            <p class="section-label">Watchlist</p>
+            <h2>Build your personal stock set</h2>
+          </div>
+          <p class="dashboard-meta">
+            Each card shows a 30-day chart, a buy / hold / sell read, analyst context, and
+            investor-facing news from the last 7 days.
+          </p>
+        </div>
+        <form id="watchlistForm" class="watchlist-form">
+          <label class="input-label" for="watchInput">Stock ticker</label>
+          <div class="input-row">
+            <input
+              id="watchInput"
+              name="watchInput"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Try NVDA, MSFT, AAPL, WDAY, CRM"
+            />
+            <button class="primary-button" type="submit">Add ticker</button>
+          </div>
+          <p class="helper-text">
+            Use public equity tickers. The dashboard will resolve the full company name
+            automatically when market data is available.
+          </p>
+        </form>
+        <div id="watchlistChips" class="chip-row" aria-live="polite"></div>
+      </section>
+
+      <section class="portfolio-summary">
+        <div class="summary-card">
+          <p class="summary-label">Coverage</p>
+          <h3 id="totalCompanies">0 names</h3>
+          <p id="coverageDetail">Loading...</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Call Mix</p>
+          <h3 id="callMix">Waiting for data</h3>
+          <p id="callMixDetail">Buy / Hold / Sell distribution across the loaded watchlist.</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Biggest Move</p>
+          <h3 id="biggestMove">Waiting for data</h3>
+          <p id="biggestMoveDetail">Largest absolute move today across the current watchlist.</p>
+        </div>
+      </section>
+
+      <section class="dashboard-panel">
+        <div class="dashboard-header">
+          <div>
+            <p class="section-label">Investor cards</p>
+            <h2>Signal, setup, and headline flow</h2>
+          </div>
+          <p class="dashboard-meta">
+            Designed to stay readable at a glance: price and setup first, then tabs for strategy,
+            factors, analysts, and news.
+          </p>
+        </div>
+        <div id="statusBanner" class="status-banner">Loading dashboard...</div>
+        <div id="dashboardGrid" class="dashboard-grid"></div>
+      </section>
+    </div>
+
+    <template id="chipTemplate">
+      <div class="watch-chip">
+        <div>
+          <p class="chip-title"></p>
+          <p class="chip-subtitle"></p>
+        </div>
+        <button type="button" class="remove-chip" aria-label="Remove ticker">Remove</button>
+      </div>
+    </template>
+
+    <template id="cardTemplate">
+      <article class="company-card">
+        <div class="company-header">
+          <div class="company-header-copy">
+            <div class="card-topline">
+              <p class="card-tag"></p>
+              <div class="card-actions">
+                <span class="drag-hint">Drag to reorder</span>
+                <button type="button" class="card-toggle" aria-expanded="true">Collapse</button>
+              </div>
+            </div>
+            <h3 class="company-name"></h3>
+            <p class="company-subtitle"></p>
+          </div>
+          <div class="price-block">
+            <p class="price-value"></p>
+            <p class="price-change"></p>
+            <div class="signal-badges">
+              <span class="signal-badge action-badge"></span>
+              <span class="signal-badge sentiment-badge"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="hero-grid">
+            <section class="chart-panel">
+              <div class="chart-header">
+                <div>
+                  <p class="section-label">Chart</p>
+                  <h4>30 day trend</h4>
+                </div>
+                <p class="chart-caption"></p>
+              </div>
+              <svg class="mini-chart" viewBox="0 0 280 120" preserveAspectRatio="none" aria-hidden="true">
+                <path class="chart-area"></path>
+                <path class="chart-line"></path>
+              </svg>
+            </section>
+
+            <section class="signal-panel">
+              <div class="section-heading">
+                <div>
+                  <p class="section-label">Strategy</p>
+                  <h4>Current read</h4>
+                </div>
+              </div>
+              <p class="signal-summary"></p>
+              <ul class="note-list highlights-list"></ul>
+            </section>
+          </div>
+
+          <div class="metric-grid quick-facts"></div>
+          <div class="card-section-nav"></div>
+
+          <section class="section-block strategy-section" data-section="strategy">
+            <div class="section-heading">
+              <div>
+                <p class="section-label">Strategy</p>
+                <h4>Why this is a buy, hold, or sell</h4>
+              </div>
+            </div>
+            <div class="signal-callout">
+              <p class="callout-eyebrow">Signal summary</p>
+              <p class="callout-copy strategy-summary"></p>
+            </div>
+            <div class="list-columns">
+              <div class="list-panel">
+                <p class="list-title">Reasons</p>
+                <ul class="note-list reasons-list"></ul>
+              </div>
+              <div class="list-panel">
+                <p class="list-title">Catalysts</p>
+                <ul class="note-list catalysts-list"></ul>
+              </div>
+              <div class="list-panel">
+                <p class="list-title">Risks</p>
+                <ul class="note-list risks-list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="section-block factors-section hidden" data-section="factors">
+            <div class="section-heading">
+              <div>
+                <p class="section-label">Factors</p>
+                <h4>Key financial and positioning inputs</h4>
+              </div>
+            </div>
+            <div class="metric-grid factor-facts"></div>
+            <div class="technical-grid technical-facts"></div>
+          </section>
+
+          <section class="section-block analyst-section hidden" data-section="analysts">
+            <div class="section-heading">
+              <div>
+                <p class="section-label">Analysts</p>
+                <h4>Street framing and target context</h4>
+              </div>
+            </div>
+            <div class="analyst-snapshot"></div>
+            <div class="reaction-list"></div>
+          </section>
+
+          <section class="section-block news-section hidden" data-section="news">
+            <div class="section-heading">
+              <div>
+                <p class="section-label">News</p>
+                <h4>Last 7 days</h4>
+              </div>
+            </div>
+            <div class="news-list"></div>
+          </section>
+        </div>
+      </article>
+    </template>
+
+    <template id="newsTemplate">
+      <article class="news-item">
+        <div class="news-topline">
+          <div>
+            <p class="news-source"></p>
+            <a class="news-link" target="_blank" rel="noreferrer"></a>
+          </div>
+          <p class="news-date"></p>
+        </div>
+        <p class="news-summary"></p>
+        <div class="callout-box">
+          <span>Why it matters</span>
+          <p class="news-why-care"></p>
+        </div>
+      </article>
+    </template>
+
+    <template id="reactionTemplate">
+      <article class="reaction-item">
+        <div class="reaction-topline">
+          <p class="reaction-source"></p>
+          <p class="reaction-date"></p>
+        </div>
+        <a class="reaction-link" target="_blank" rel="noreferrer"></a>
+        <p class="reaction-summary"></p>
+      </article>
+    </template>
+
+    <script src="/pg-app.js" type="module"></script>
+  </body>
+</html>

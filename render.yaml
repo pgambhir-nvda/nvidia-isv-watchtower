@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: nvidia-isv-watchtower
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: ALPHA_VANTAGE_API_KEY
+        sync: false
