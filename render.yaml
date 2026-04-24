@@ -2,6 +2,7 @@ services:
   - type: web
     name: nvidia-isv-watchtower
     runtime: node
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /
