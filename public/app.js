@@ -16,6 +16,8 @@ const elements = {
   statusBanner: document.querySelector("#statusBanner"),
   generatedAt: document.querySelector("#generatedAt"),
   refreshButton: document.querySelector("#refreshButton"),
+  expandAllButton: document.querySelector("#expandAllButton"),
+  collapseAllButton: document.querySelector("#collapseAllButton"),
   exportButton: document.querySelector("#exportButton"),
   totalCompanies: document.querySelector("#totalCompanies"),
   coverageDetail: document.querySelector("#coverageDetail"),
@@ -135,6 +137,13 @@ function buildEntryFromInput(value) {
 function setStatus(message, isError = false) {
   elements.statusBanner.textContent = message;
   elements.statusBanner.classList.toggle("error", isError);
+}
+
+function setTopButtonsDisabled(disabled) {
+  elements.refreshButton.disabled = disabled;
+  elements.expandAllButton.disabled = disabled;
+  elements.collapseAllButton.disabled = disabled;
+  elements.exportButton.disabled = disabled;
 }
 
 function metricCard(label, value) {
@@ -355,6 +364,17 @@ function applyCollapseBehavior(cardElement, cardId) {
       state.collapsedCards.delete(cardId);
     }
   });
+}
+
+function setAllCardsCollapsed(collapsed) {
+  if (!state.dashboard?.cards?.length) {
+    return;
+  }
+
+  state.collapsedCards = collapsed
+    ? new Set(state.dashboard.cards.map((card) => card.id))
+    : new Set();
+  renderCards(state.dashboard.cards);
 }
 
 function enableSection(sectionElement) {
@@ -580,8 +600,7 @@ async function loadDashboard() {
 
   state.loading = true;
   setStatus("Loading quotes, filings, analyst reactions, and recent news...");
-  elements.refreshButton.disabled = true;
-  elements.exportButton.disabled = true;
+  setTopButtonsDisabled(true);
 
   try {
     const data = await fetchDashboard();
@@ -603,8 +622,7 @@ async function loadDashboard() {
     setStatus(error.message, true);
   } finally {
     state.loading = false;
-    elements.refreshButton.disabled = false;
-    elements.exportButton.disabled = false;
+    setTopButtonsDisabled(false);
   }
 }
 
@@ -655,7 +673,11 @@ async function buildStandaloneHtml() {
   root.querySelectorAll("script").forEach((node) => node.remove());
   root.querySelectorAll("template").forEach((node) => node.remove());
   root.querySelectorAll("link[rel='stylesheet'][href='/styles.css']").forEach((node) => node.remove());
-  root.querySelectorAll("#refreshButton, #exportButton, .watchlist-form, .pill-group, .remove-chip, .drag-hint").forEach((node) => node.remove());
+  root
+    .querySelectorAll(
+      "#refreshButton, #expandAllButton, #collapseAllButton, #exportButton, .watchlist-form, .pill-group, .remove-chip, .drag-hint"
+    )
+    .forEach((node) => node.remove());
   root.querySelectorAll(".company-card").forEach((card) => card.removeAttribute("draggable"));
 
   const exportNote = document.createElement("p");
@@ -708,7 +730,7 @@ async function exportDashboardHtml() {
     return;
   }
 
-  elements.exportButton.disabled = true;
+  setTopButtonsDisabled(true);
   setStatus("Building standalone HTML snapshot...");
 
   try {
@@ -726,7 +748,7 @@ async function exportDashboardHtml() {
   } catch (error) {
     setStatus(error.message || "Unable to export standalone HTML.", true);
   } finally {
-    elements.exportButton.disabled = false;
+    setTopButtonsDisabled(false);
   }
 }
 
@@ -761,6 +783,14 @@ elements.watchlistForm.addEventListener("submit", (event) => {
 
 elements.refreshButton.addEventListener("click", () => {
   loadDashboard();
+});
+
+elements.expandAllButton.addEventListener("click", () => {
+  setAllCardsCollapsed(false);
+});
+
+elements.collapseAllButton.addEventListener("click", () => {
+  setAllCardsCollapsed(true);
 });
 
 elements.exportButton.addEventListener("click", () => {
