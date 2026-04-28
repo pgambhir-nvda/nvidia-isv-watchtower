@@ -8,6 +8,16 @@ const state = {
   activeSections: new Map()
 };
 
+const WATCHLIST_STORAGE_KEY = "nvidia-watchtower-watchlist";
+const WATCHLIST_DEFAULTS_VERSION_KEY = "nvidia-watchtower-watchlist-defaults-version";
+const WATCHLIST_DEFAULTS_VERSION = "2026-04-27-isv-defaults-v1";
+const LEGACY_DEFAULT_WATCHLIST_KEYS = new Set([
+  "ticker:TEAM",
+  "ticker:PLTR",
+  "ticker:NOW",
+  "company:databricks"
+]);
+
 const elements = {
   watchlistForm: document.querySelector("#watchlistForm"),
   watchInput: document.querySelector("#watchInput"),
@@ -42,11 +52,12 @@ const sectionDefinitions = [
 ];
 
 function saveWatchlist() {
-  localStorage.setItem("nvidia-watchtower-watchlist", JSON.stringify(state.watchlist));
+  localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(state.watchlist));
+  localStorage.setItem(WATCHLIST_DEFAULTS_VERSION_KEY, WATCHLIST_DEFAULTS_VERSION);
 }
 
 function loadWatchlist() {
-  const saved = localStorage.getItem("nvidia-watchtower-watchlist");
+  const saved = localStorage.getItem(WATCHLIST_STORAGE_KEY);
   if (!saved) {
     return null;
   }
@@ -57,6 +68,24 @@ function loadWatchlist() {
   } catch {
     return null;
   }
+}
+
+function loadWatchlistDefaultsVersion() {
+  return localStorage.getItem(WATCHLIST_DEFAULTS_VERSION_KEY);
+}
+
+function getWatchlistEntryKey(entry) {
+  return entry.mode === "company"
+    ? `company:${String(entry.query || "").trim().toLowerCase()}`
+    : `ticker:${String(entry.symbol || "").trim().toUpperCase()}`;
+}
+
+function matchesLegacyDefaultWatchlist(entries) {
+  const normalizedKeys = uniqueWatchlist(entries).map(getWatchlistEntryKey);
+  return (
+    normalizedKeys.length === LEGACY_DEFAULT_WATCHLIST_KEYS.size &&
+    normalizedKeys.every((key) => LEGACY_DEFAULT_WATCHLIST_KEYS.has(key))
+  );
 }
 
 function formatDateTime(value) {
@@ -90,17 +119,14 @@ function setMode(mode) {
   });
   elements.watchInput.placeholder =
     state.mode === "ticker"
-      ? "Try TEAM, NOW, PLTR, CRM"
+      ? "Try NOW, CRM, WDAY, SNOW"
       : "Try Databricks, Snowflake, Rubrik";
 }
 
 function uniqueWatchlist(entries) {
   const seen = new Set();
   return entries.filter((entry) => {
-    const key =
-      entry.mode === "company"
-        ? `company:${entry.query.toLowerCase()}`
-        : `ticker:${entry.symbol.toUpperCase()}`;
+    const key = getWatchlistEntryKey(entry);
 
     if (seen.has(key)) {
       return false;
@@ -753,14 +779,22 @@ async function exportDashboardHtml() {
 }
 
 async function initialize() {
+  const config = await fetchConfig();
   const savedWatchlist = loadWatchlist();
+  const savedDefaultsVersion = loadWatchlistDefaultsVersion();
+  const shouldRefreshFromDefaults =
+    !savedWatchlist?.length ||
+    (savedDefaultsVersion !== WATCHLIST_DEFAULTS_VERSION &&
+      matchesLegacyDefaultWatchlist(savedWatchlist));
 
-  if (savedWatchlist?.length) {
-    state.watchlist = uniqueWatchlist(savedWatchlist);
-  } else {
-    const config = await fetchConfig();
+  if (shouldRefreshFromDefaults) {
     state.watchlist = uniqueWatchlist(config.defaultWatchlist);
     saveWatchlist();
+  } else {
+    state.watchlist = uniqueWatchlist(savedWatchlist);
+    if (savedDefaultsVersion !== WATCHLIST_DEFAULTS_VERSION) {
+      saveWatchlist();
+    }
   }
 
   renderWatchlistChips();

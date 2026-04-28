@@ -11,10 +11,35 @@ loadLocalEnv();
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY || "";
 
 const DEFAULT_WATCHLIST = [
-  { id: "TEAM", mode: "ticker", symbol: "TEAM", label: "Atlassian" },
-  { id: "PLTR", mode: "ticker", symbol: "PLTR", label: "Palantir" },
   { id: "NOW", mode: "ticker", symbol: "NOW", label: "ServiceNow" },
-  { id: "DATABRICKS", mode: "company", query: "Databricks", label: "Databricks" }
+  { id: "PLTR", mode: "ticker", symbol: "PLTR", label: "Palantir" },
+  { id: "CRWD", mode: "ticker", symbol: "CRWD", label: "CrowdStrike" },
+  { id: "CRM", mode: "ticker", symbol: "CRM", label: "Salesforce" },
+  { id: "SAP", mode: "ticker", symbol: "SAP", label: "SAP" },
+  { id: "IBM", mode: "ticker", symbol: "IBM", label: "IBM" },
+  { id: "SNOW", mode: "ticker", symbol: "SNOW", label: "Snowflake" },
+  { id: "ORCL", mode: "ticker", symbol: "ORCL", label: "Oracle" },
+  { id: "ADBE", mode: "ticker", symbol: "ADBE", label: "Adobe" },
+  { id: "WDAY", mode: "ticker", symbol: "WDAY", label: "Workday" },
+  { id: "TEAM", mode: "ticker", symbol: "TEAM", label: "Atlassian" },
+  { id: "DOCU", mode: "ticker", symbol: "DOCU", label: "DocuSign" },
+  { id: "ESTC", mode: "ticker", symbol: "ESTC", label: "Elastic" },
+  { id: "SIEGY", mode: "ticker", symbol: "SIEGY", label: "Siemens" },
+  { id: "DASTY", mode: "ticker", symbol: "DASTY", label: "Dassault Systemes" },
+  { id: "SNPS", mode: "ticker", symbol: "SNPS", label: "Synopsys" },
+  { id: "CDNS", mode: "ticker", symbol: "CDNS", label: "Cadence" },
+  { id: "ZM", mode: "ticker", symbol: "ZM", label: "Zoom" },
+  { id: "AKAM", mode: "ticker", symbol: "AKAM", label: "Akamai" },
+  { id: "BOX", mode: "ticker", symbol: "BOX", label: "Box" },
+  { id: "NET", mode: "ticker", symbol: "NET", label: "Cloudflare" },
+  { id: "CVLT", mode: "ticker", symbol: "CVLT", label: "Commvault" },
+  { id: "DBX", mode: "ticker", symbol: "DBX", label: "Dropbox" },
+  { id: "FSLY", mode: "ticker", symbol: "FSLY", label: "Fastly" },
+  { id: "MDB", mode: "ticker", symbol: "MDB", label: "MongoDB" },
+  { id: "NTAP", mode: "ticker", symbol: "NTAP", label: "NetApp" },
+  { id: "PSTG", mode: "ticker", symbol: "PSTG", label: "Pure Storage" },
+  { id: "RBRK", mode: "ticker", symbol: "RBRK", label: "Rubrik" },
+  { id: "TDC", mode: "ticker", symbol: "TDC", label: "Teradata" }
 ];
 
 const PERSONAL_DEFAULT_WATCHLIST = [
